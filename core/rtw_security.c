@@ -2323,7 +2323,11 @@ static int sha256_compress(struct rtw_sha256_state *md, unsigned char *buf)
 }
 
 /* Initialize the hash state */
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(6, 18, 0))
+static void rtw_sha256_init(struct rtw_sha256_state *md)
+#else
 static void sha256_init(struct rtw_sha256_state *md)
+#endif
 {
 	md->curlen = 0;
 	md->length = 0;
@@ -2440,7 +2444,11 @@ static int sha256_vector(size_t num_elem, u8 *addr[], size_t *len,
 	struct rtw_sha256_state ctx;
 	size_t i;
 
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(6, 18, 0))
+	rtw_sha256_init(&ctx);
+#else
 	sha256_init(&ctx);
+#endif
 	for (i = 0; i < num_elem; i++)
 		if (sha256_process(&ctx, addr[i], len[i]))
 			return -1;

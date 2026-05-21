@@ -412,6 +412,8 @@ endif
 
 ifneq ($(KERNELRELEASE),)
 
+ccflags-y += $(EXTRA_CFLAGS)
+
 rtk_core :=	core/rtw_cmd.o \
 		core/rtw_security.o \
 		core/rtw_debug.o \

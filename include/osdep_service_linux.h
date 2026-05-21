@@ -53,6 +53,7 @@
 	#include <linux/rtnetlink.h>
 	#include <linux/delay.h>
 	#include <linux/interrupt.h>	// for struct tasklet_struct
+	#include <linux/timer.h>
 	#include <linux/ip.h>
 	#include <linux/kthread.h>
 	#include <linux/list.h>
@@ -277,11 +278,14 @@ __inline static void rtw_list_delete(_list *plist)
 }
 
 #define RTW_TIMER_HDL_ARGS void *FunctionContext
-
 #if (LINUX_VERSION_CODE >= KERNEL_VERSION(4, 15, 0))
 static void legacy_timer_emu_func(struct timer_list *t)
 {
+	#if (LINUX_VERSION_CODE >= KERNEL_VERSION(6, 16, 0))
+	struct legacy_timer_emu *lt = timer_container_of(lt, t, t);
+	#else
 	struct legacy_timer_emu *lt = from_timer(lt, t, t);
+	#endif
 	lt->function(lt->data);
 }
 #endif
@@ -309,7 +313,9 @@ __inline static void _set_timer(_timer *ptimer,u32 delay_time)
 
 __inline static void _cancel_timer(_timer *ptimer,u8 *bcancelled)
 {
-#if (LINUX_VERSION_CODE >= KERNEL_VERSION(4, 15, 0))
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(6, 15, 0))
+	timer_delete_sync(&ptimer->t);
+#elif (LINUX_VERSION_CODE >= KERNEL_VERSION(4, 15, 0))
 	del_timer_sync(&ptimer->t);
 #else
 	del_timer_sync(ptimer);
